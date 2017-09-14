@@ -4,30 +4,18 @@
 // Assignment: Process Management and Distributed Computing
 /*---------------------------------------------------------------*/
 
-/* ----- IMPORT HEADER FILES-------*/
-#include <stdio.h>      /* Input/Output */
-#include <stdlib.h>     /* General Utilities */
-#include <string.h>     /* String handling */
-#include <unistd.h>     /* Symbolic Constants */
-#include <sys/types.h>  /* Primitive System Data Types */
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <signal.h>
-#include <arpa/inet.h>
-#include <assert.h>
-#include <pthread.h>    /* POSIX Threads */
-#include <errno.h>      /* Errors */
-#include <omp.h>        /* OMP API */
+#include "server.h"
+
 
 /*----------- DEFINE ---------------*/
 #define CONN_LIMIT 10
-#define NAME_PASS_LEN 10
-#define PHRASE_LEN 20
 /*----------------------------------*/
 
 
 /*--- GLOBAL VARIABLES -------------*/
 int sockfd = 0;
+int user_count;
+int comb_count;
 /*----------------------------------*/
 
 /*---------------------------------------------*/
@@ -60,15 +48,10 @@ int main(int argc, char *argv[]) {
     /*---------------------------------------------*/
     int port = 0;
     int connfd[CONN_LIMIT];
-    // FILE *fp;
-    // char line[1000];
     char **user_names;
     char **passwords;
-    char **objects;
-    int num_objects;
-    // int name_len, pass_len = NAME_PASS_LEN;
-    int phrase_len = PHRASE_LEN;
-    // int user_count = -1;
+    char **combinations;
+   
     pthread_t p_threads[CONN_LIMIT];
     struct sockaddr_in serv_addr, cli_addr;
     socklen_t cli_len;
@@ -82,85 +65,22 @@ int main(int argc, char *argv[]) {
         port = atoi(argv[1]); // Port number to bind socket on
     }
 
-    /*---------------------------------------------*/
-    /*-----AUTHENTICATION.TXT OPERATIONS-----------*/
-    /*---------------------------------------------*/
-    // fp = fopen("Authentication.txt", "r");
-    // if (fp == NULL) {
-    //     printf("Couldn't open file\n");
-    //     return 1;
-    // }
-    // while(fgets(line, sizeof(line), fp) != NULL) user_count++;
-    // printf("Total users: %d\n", user_count);
-    // rewind(fp);
+    count_users();
+    printf("Total users: %d\n", user_count);
+    read_authentication(&user_names, &passwords);
+    count_combinations();
+    read_hangman(&combinations);
 
-    // user_names = (char **)malloc(sizeof(char *) * user_count);
-    // passwords = (char **)malloc(sizeof(char *) * user_count);
-    // # pragma omp parallel
-    // for(int i=0; i < user_count; i++){
-    //     *(user_names+i) = (char *)malloc(sizeof(char) * name_len);
-    //     *(passwords+i) = (char *)malloc(sizeof(char) * pass_len);
+    // for(int i=0; i < 10; i++) {
+    //     printf("%s:", *(user_names+i));
+    //     printf("%s. ", *(passwords+i));
+    //     printf("Length of password is: %d\n", strlen(*(passwords+i)));
     // }
-    // fgets(line, sizeof(line), fp); // Skip first line
-
-    // for(int i=0; i < user_count; i++){
-    //     fgets(line, sizeof(line), fp);
-    //     char *split = strtok(line, " \t");
-    //     strcpy(*(user_names+i), split);
-    //     split = strtok(NULL, " \t");  // Second split in 8 char in length. DONT KNOW WHY. SHOULD BE 6.
-    //     strcpy(*(passwords+i), split);
-    // }
-    // fclose(fp);
-    // # pragma omp parallel
-    // for(int i=0; i < user_count; i++){
-    //     *(*(passwords+i) + 6) = '\0';  // Terminate password after 6th character
-    // }
-
-    for(int i=0; i < 10; i++) {
-        printf("%s:", *(user_names+i));
-        printf("%s\n", *(passwords+i));
-        printf("Length of password is: %d\n", strlen(*(passwords+i)));
-    }
-    /*---------------------------------------------*/
-
-    /*---------------------------------------------*/
-    /*------------HANGMAN.TXT OPERATIONS-----------*/
-    /*---------------------------------------------*/
-    // fp = fopen("hangman_text.txt", "r");
-    // if (fp == NULL) {
-    //     printf("Couldn't open file\n");
-    //     return 1;
-    // }
-    // while(fgets(line, sizeof(line), fp) != NULL) num_objects++;
-    // printf("Total combos: %d\n", num_objects);
-    // rewind(fp);
-
-    // objects = (char **)malloc(sizeof(char *) * num_objects);
-    // for(int i=0; i < num_objects; i++){
-    //     *(objects+i) = (char *)malloc(sizeof(char) * phrase_len);
-    // }
-
-    // for(int i=0; i < num_objects; i++){
-    //     fgets(line, sizeof(line), fp);
-    //     if (strlen(line) > 2){
-    //         for(int j=0; j < strlen(line); j++){
-    //             if(line[j] != ','){
-    //                 *((*(objects+i))+j) = line[j];
-    //             }
-    //             else {
-    //                 *((*(objects+i))+j) = ' ';
-    //             }
-    //         }
-    //     }
-    // }
-    // fclose(fp);
     // printf("Object category and type sanity check....\n");
-    // for(int i =0; i < num_objects; i++){
-    //     printf("%s", *(objects+i));  
+    // for(int i =0; i < comb_count; i++){
+    //     printf("%s", *(combinations+i));  
     // }
     // printf("\n");
-    /*---------------------------------------------*/
-
 
     /*------------------------- SOCKET CREATION CODE--------------------------------------------*/
     signal(SIGINT, signal_handler); // Registers signal handling function to kernel
