@@ -14,6 +14,10 @@
 #include <pthread.h>    /* POSIX Threads */
 #include <errno.h>      /* Errors */
 #include <omp.h>        /* OMP API */
-#include "reader.h"
+#include "reader.h"     /* Txt file Reader */
+#include "connection.h" /* server-client connection */
+#include "game.h"
+
+void* hangman_instance(void *);
 
 #endif
