@@ -29,15 +29,21 @@ void signal_handler(int sigNum){
     */
     exit(sigNum);
 }
-/*---------------------------------------------*/
-// void* hangman_instance(void *args) {
-//     int *connfd;
-//     connfd = (int *) args;
-//     char *buffer;
-//     memset(buffer, '0', sizeof(buffer));
-//     buffer = "This is server saying Hi!\n";
-//     write(*connfd, buffer, strlen(buffer));
-// }
+void sanity_check(char **user_names, char **passwords, char **combinations, int i) {
+    switch(i) {
+        case 1:
+            for(int j=0; j < user_count; j++) {
+                printf("%s:", *(user_names+j));
+                printf("%s\n", *(passwords+j));
+            }
+            break;
+        case 2:
+            for(int j=0; j < comb_count; j++) {
+                printf("%s", *(combinations+j));
+            }
+            break;
+    }
+}
 /*---------------------------------------------*/
 /*  param: argc: Number of arguments passed to main
     param: argv: Array of string arguments passed to main  */
@@ -66,33 +72,19 @@ int main(int argc, char *argv[]) {
         port = atoi(argv[1]); // Port number to bind socket on
     }
 
+    signal(SIGINT, signal_handler); // Registers signal handling function to kernel
     count_users();
     printf("Total users: %d\n", user_count);
     read_authentication(&user_names, &passwords);
     count_combinations();
     read_hangman(&combinations);
-
-    // for(int i=0; i < 10; i++) {
-    //     printf("%s:", *(user_names+i));
-    //     printf("%s. ", *(passwords+i));
-    //     printf("Length of password is: %d\n", strlen(*(passwords+i)));
-    // }
-    // printf("Object category and type sanity check....\n");
-    // for(int i =0; i < comb_count; i++){
-    //     printf("%s", *(combinations+i));  
-    // }
-    // printf("\n");
-    signal(SIGINT, signal_handler); // Registers signal handling function to kernel
+    sanity_check(user_names, passwords, combinations, 2);
     setup_server_conns(port);
 
-    /*------------------------- LOOP --------------------------------------------*/
+  
     while(1) {
         printf("Listening at port %d\n", port);
-        connfd[0] = accept(sockfd, (struct sockaddr *) &cli_addr, &cli_len);
-        /*
-            accept() is blocking. Waits for the connection before running.
-            Dequeues the next connection on the queue for socket.
-        */
+        connfd[0] = accept(sockfd, (struct sockaddr *) &cli_addr, &cli_len);  // accept() is blocking 
         if (pthread_create(&p_threads[0], NULL, &play_game, (void *) &connfd[0]) != 0) {
             printf("Error creating thread");
             exit(-1);
@@ -101,6 +93,5 @@ int main(int argc, char *argv[]) {
         printf("connection id is: %d\n", connfd[0]);
         sleep(1);
     }
-    /*------------------------- LOOP --------------------------------------------*/
     return 0;
 }
