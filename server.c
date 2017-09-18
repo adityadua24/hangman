@@ -78,9 +78,8 @@ int main(int argc, char *argv[]) {
     read_authentication(&user_names, &passwords);
     count_combinations();
     read_hangman(&combinations);
-    sanity_check(user_names, passwords, combinations, 2);
+    sanity_check(user_names, passwords, combinations, 1);
     setup_server_conns(port);
-
   
     while(1) {
         printf("Listening at port %d\n", port);
