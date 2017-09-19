@@ -11,9 +11,9 @@
 
 void setup_server_conns(int port){
     struct sockaddr_in serv_addr;
-    inet_aton("127.0.0.1", &serv_addr.sin_addr);  // Set IP address for socket
+    // inet_aton("127.0.0.1", &serv_addr.sin_addr);  // Set IP address for socket
     serv_addr.sin_port = htons(port); // Converts port number to network byte order before assigning
-    // serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);  // Set IP address for socket
+    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);  // Set IP address for socket
     serv_addr.sin_family = AF_INET;
     // struct sockaddr_in cli_addr;
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
