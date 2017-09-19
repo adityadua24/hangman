@@ -17,7 +17,6 @@
 #include "reader.h"     /* Txt file Reader */
 #include "connection.h" /* server-client connection */
 #include "game.h"
-
-void* hangman_instance(void *);
+#include "sys_ops.h"
 
 #endif

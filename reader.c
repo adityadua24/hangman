@@ -39,13 +39,6 @@ void read_authentication(char ***user_names, char ***passwords){
         printf("Couldn't open file\n");
         exit(-1);
     }
-    *(user_names) = (char **)malloc(sizeof(char *) * user_count);
-    *(passwords) = (char **)malloc(sizeof(char *) * user_count);
-    // # pragma omp parallel
-    for(int i=0; i < user_count; i++){
-        *(*(user_names)+i) = (char *)malloc(sizeof(char) * name_len);
-        *(*(passwords)+i) = (char *)malloc(sizeof(char) * pass_len);
-    }
     fgets(line, sizeof(line), fp); // Skip first line
 
     for(int i=0; i < user_count; i++){
@@ -65,16 +58,11 @@ void read_authentication(char ***user_names, char ***passwords){
 void read_hangman(char ***combinations){
     FILE *fp;
     char line[500];
-    int phrase_len = 20;
+    
     fp = fopen("hangman_text.txt", "r");
     if (fp == NULL) {
         printf("Couldn't open file\n");
         exit(-1);
-    }
-
-    *combinations = (char **)malloc(sizeof(char *) * comb_count);
-    for(int i=0; i < comb_count; i++){
-        *(*(combinations)+i) = (char *)malloc(sizeof(char) * phrase_len);
     }
 
     for(int i=0; i < comb_count; i++){

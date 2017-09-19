@@ -16,6 +16,9 @@
 int sockfd = 0;
 int user_count;
 int comb_count;
+char **user_names;
+char **passwords;
+char **combinations;
 /*----------------------------------*/
 
 /*---------------------------------------------*/
@@ -23,21 +26,26 @@ int comb_count;
     param - sigNum: Signal number corresponding to singal   */
 void signal_handler(int sigNum){
     printf("\nSafely exiting code ....\n");
+    printf("Closing socket ....\n");
     close(sockfd); // Close the socket. 0 if successful, -1 if error
-    /*
-        FREE memory operations here
-    */
+    printf("Freeing memory ....\n");
+    free_memory_users_passwords(&user_names, &passwords);
+    free_memory_combinations(&combinations);
+    printf("Destroying thread pool ....\n");
     exit(sigNum);
 }
-void sanity_check(char **user_names, char **passwords, char **combinations, int i) {
+/*---------------------------------------------*/
+void sanity_check(int i) {
     switch(i) {
         case 1:
+            printf("Total users: %d\n", user_count);
             for(int j=0; j < user_count; j++) {
                 printf("%s:", *(user_names+j));
                 printf("%s\n", *(passwords+j));
             }
             break;
         case 2:
+            printf("Total combinations: %d\n", comb_count);
             for(int j=0; j < comb_count; j++) {
                 printf("%s", *(combinations+j));
             }
@@ -54,9 +62,7 @@ int main(int argc, char *argv[]) {
     /*---------------------------------------------*/
     int port = 0;
     int connfd[CONN_LIMIT];
-    char **user_names;
-    char **passwords;
-    char **combinations;
+    // LeaderBoard lb;
    
     pthread_t p_threads[CONN_LIMIT];
     // struct sockaddr_in serv_addr;
@@ -74,11 +80,13 @@ int main(int argc, char *argv[]) {
 
     signal(SIGINT, signal_handler); // Registers signal handling function to kernel
     count_users();
-    printf("Total users: %d\n", user_count);
-    read_authentication(&user_names, &passwords);
     count_combinations();
+    malloc_users_passwords(&user_names, &passwords);
+    malloc_combinations(&combinations);
+    read_authentication(&user_names, &passwords);
     read_hangman(&combinations);
-    sanity_check(user_names, passwords, combinations, 1);
+    sanity_check(1);
+    sanity_check(2);
     setup_server_conns(port);
   
     while(1) {
