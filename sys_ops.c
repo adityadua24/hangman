@@ -5,7 +5,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include "sys_ops.h"
-#include "game.h"
+
 
 void malloc_users_passwords(char ***user_names, char ***passwords){
     int name_len = 10;
@@ -55,6 +55,52 @@ void setup_threadpool(pthread_t *t_pool, int *thread_id, int numThreads){
 
 void* game_requests_loop(void *args){
     int thread_id = *(int *)args;
-    printf("Thread %d: Ready to handle a game request.\n", thread_id);
-    while(1) sleep(3);
+    int rc = pthread_mutex_lock(&request_mutex);
+    while(1) {
+        if(num_requests > 0) {
+            request *game_session = get_request();
+            play_game(game_session);
+        }
+        else{
+            rc = pthread_cond_wait(&got_request, &request_mutex);
+        }
+        sleep(1);
+    }
+}
+
+void add_request(request *new) {
+    int rc = pthread_mutex_lock(&request_mutex);
+    if(num_requests == 0) {
+        requests = new;
+        printf("ALL GOOD CHECKPOINT: 1\n");
+    }
+    else if( num_requests > 0) {
+        new->next = requests;
+        requests = new;
+        printf("ALL GOOD CHECKPOINT: 2\n");
+    }
+    num_requests++;
+    rc = pthread_mutex_unlock(&request_mutex);
+    rc = pthread_cond_signal(&got_request);
+    printf("REQUEST ADDED!\n");
+    printf("added request connfd: %d\n", requests->connfd);
+}
+
+request* get_request(){
+    request *pop;
+    int rc = pthread_mutex_lock(&request_mutex);
+    if(num_requests > 0){
+        pop = requests;
+        if(requests->next != NULL){
+            requests = requests->next;
+        }
+        num_requests--;
+    }
+    else{
+        pop = NULL;
+    }
+    rc = pthread_mutex_unlock(&request_mutex);
+    printf("REQUEST POPPED....\n");
+    printf("popped request connfd: %d\n", pop->connfd);
+    return pop;
 }

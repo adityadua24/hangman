@@ -19,6 +19,10 @@ int comb_count;
 char **user_names;
 char **passwords;
 char **combinations;
+request *requests;
+int num_requests = 0;
+pthread_mutex_t request_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
+pthread_cond_t  got_request   = PTHREAD_COND_INITIALIZER;
 /*----------------------------------*/
 
 /*---------------------------------------------*/
@@ -68,7 +72,6 @@ int main(int argc, char *argv[]) {
     
     int thread_id[CONN_LIMIT];
     pthread_t t_pool[CONN_LIMIT];
-    // struct sockaddr_in serv_addr;
     struct sockaddr_in cli_addr;
     socklen_t cli_len;
     cli_len = sizeof(cli_addr);
@@ -95,6 +98,11 @@ int main(int argc, char *argv[]) {
     
     printf("Listening at port %d\n", port);
     while(1) {
+        request* new = (request *)malloc(sizeof(request));
+        new->next = NULL;
+        new->connfd = accept(sockfd, (struct sockaddr *) &(new->cli_addr), &(new->cli_len));
+        printf("Connection accepted.\n");
+        add_request(new);
         // connfd[0] = accept(sockfd, (struct sockaddr *) &cli_addr, &cli_len);  // accept() is blocking 
         // if (pthread_create(&t_pool[0], NULL, &play_game, (void *) &connfd[0]) != 0) {
         //     printf("Error creating thread");

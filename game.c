@@ -4,12 +4,11 @@
 #include <unistd.h>     /* Symbolic Constants */
 #include "game.h"
 
-
 void* play_game(void *args) {
-    int *connfd;
-    connfd = (int *) args;
-    char *buffer;
-    memset(buffer, '0', sizeof(buffer));
-    buffer = "This is server saying Hi!\n";
-    write(*connfd, buffer, strlen(buffer));
+    request *game_session = (request *)args;
+    int connfd = game_session->connfd;
+    printf("game session connfd: %d\n", game_session->connfd);
+    char *buffer = "Login and Play hangman! !\n";
+    write(connfd, buffer, strlen(buffer));
+    sleep(20);
 }
