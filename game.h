@@ -11,5 +11,8 @@ typedef struct game_request {
     struct game_request *next;
 }request;
 
+extern int sockfd;
+
 void* play_game(void *);
+int authenticate(int *);
 #endif

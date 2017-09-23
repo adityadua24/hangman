@@ -42,8 +42,9 @@ int main(int argc, char const *argv[]) {
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(port);
 
-    char buffer[256];
-    memset(buffer, '0', sizeof(buffer));
+    char *buffer;
+    buffer = (char *)malloc(sizeof(char) * 500);
+    memset(buffer, '0', 500);
 
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         // AF_INET: IPv4, SOCK_STREAM: 2-way comm, 0: Default protocol
@@ -57,15 +58,33 @@ int main(int argc, char const *argv[]) {
     }
 
     int n = 0;
-    while((n = read(sockfd, buffer, sizeof(buffer) -1)) > 0) {
-        buffer[n] = 0;
-        if(fputs(buffer, stdout) == EOF)
-        {
-            printf("\n Error : Fputs error\n");
+    // while((n = recv(sockfd, buffer, 500, 0)) > 0) {
+    //     printf("Bytes of data received: %d\n", n);
+    //     buffer[n] = '\0';
+    //     printf("string terminated success.\n");
+    //     // if(fputs(buffer, stdout) == EOF)
+    //     // {
+    //     //     printf("\n Error : Fputs error\n");
+    //     // }
+    //     fputs(buffer, stdout);
+    // }
+    while(1){
+        n = recv(sockfd, buffer, 500, 0);
+        if (n == -1){
+            printf("Receiving failed\n");
+            exit(-1);
         }
+        else if(n == 0){
+            continue;
+        }
+        *(buffer+n) = '\0';
+        int flag = 0;
+        if (strlen(buffer) == 1){
+
+        }
+        printf("%s", buffer);
+        fflush(stdout);
+        memset(buffer, '0', 500);
     }
-
-
-
     return 0;
 }

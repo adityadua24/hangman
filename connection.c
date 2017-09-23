@@ -25,5 +25,8 @@ void setup_server_conns(int port){
         printf("Failed to bind socket.\nExiting now....\n");
         exit(-1);
     }
-    listen(sockfd, 10);  // Convert unconnected socket to passive socket
+    if (listen(sockfd, 10) == -1){ // Convert unconnected socket to passive socket
+        printf("Failed to listen at port %d\n", port);
+        exit(-1);
+    }
 }

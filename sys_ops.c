@@ -68,7 +68,7 @@ void* game_requests_loop(void *args){
     }
 }
 
-void add_request(request *new) {
+void add_request(request *new){
     int rc = pthread_mutex_lock(&request_mutex);
     if(num_requests == 0) {
         requests = new;
@@ -82,8 +82,6 @@ void add_request(request *new) {
     num_requests++;
     rc = pthread_mutex_unlock(&request_mutex);
     rc = pthread_cond_signal(&got_request);
-    printf("REQUEST ADDED!\n");
-    printf("added request connfd: %d\n", requests->connfd);
 }
 
 request* get_request(){
@@ -100,7 +98,5 @@ request* get_request(){
         pop = NULL;
     }
     rc = pthread_mutex_unlock(&request_mutex);
-    printf("REQUEST POPPED....\n");
-    printf("popped request connfd: %d\n", pop->connfd);
     return pop;
 }

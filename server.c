@@ -62,7 +62,7 @@ void sanity_check(int i) {
 /*  param: argc: Number of arguments passed to main
     param: argv: Array of string arguments passed to main  */
 int main(int argc, char *argv[]) {
-
+    
     /*---------------------------------------------*/
     /*------ VARIABLES in main function stack -----*/
     /*---------------------------------------------*/
@@ -101,7 +101,14 @@ int main(int argc, char *argv[]) {
         request* new = (request *)malloc(sizeof(request));
         new->next = NULL;
         new->connfd = accept(sockfd, (struct sockaddr *) &(new->cli_addr), &(new->cli_len));
-        printf("Connection accepted.\n");
+        if (new->connfd == -1){
+            printf("Failed to accept connection.\n");
+            printf("Client address: %s\n", inet_ntoa(new->cli_addr.sin_addr));
+        }
+        else{
+            printf("Connection accepted.\n");
+            printf("Client address: %\n", inet_ntoa(new->cli_addr.sin_addr));
+        }
         add_request(new);
         // connfd[0] = accept(sockfd, (struct sockaddr *) &cli_addr, &cli_len);  // accept() is blocking 
         // if (pthread_create(&t_pool[0], NULL, &play_game, (void *) &connfd[0]) != 0) {
