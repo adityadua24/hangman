@@ -29,6 +29,50 @@ void signal_handler(int sigNum){
     exit(sigNum);
 }
 
+int send_segment(int *sockfd, char *msg, int msg_len){
+    char terminate = '#';
+    int n = 0;
+    for(int i=0; i < msg_len; i++){
+        if ((n = send(*sockfd, (msg+i), 1, 0)) <= 0){
+            printf("Sending failed ....\n");
+            return -1;
+        }
+    }
+    if ((n = send(*sockfd, &terminate, 1, 0)) <=0 ){
+        printf("Segment termination failed ....\n");
+        return -1;
+    }
+    return 1;
+}
+
+char * read_segment(int *sockfd){
+    int n, i = 0;
+    char *ch;
+    ch = (char *)malloc(sizeof(char));
+    memset(ch, '0', 1);
+    char *buffer;
+    buffer = (char *)malloc(sizeof(char) * 256);
+    memset(buffer, '0', 256);
+    while(1){
+        n = recv(*sockfd, ch, 1, 0);
+        if (n == 0){
+            return NULL;
+        }
+        else if(n == -1){
+            printf("Receiving failed ....\n");
+            exit(-1);
+        }
+        if(*ch != '#'){
+            *(buffer+i) = *ch;
+        }
+        else{
+            *(buffer+i) = '\0';
+            break;
+        }
+        i++;
+    }
+    return buffer;
+}
 int main(int argc, char const *argv[]) {
 
     if (argc < 3) {
@@ -43,6 +87,9 @@ int main(int argc, char const *argv[]) {
     serv_addr.sin_port = htons(port);
 
     char *buffer;
+    char *ch;
+    ch = (char *) malloc(sizeof(char));
+    memset(ch, '0', 1);
     buffer = (char *)malloc(sizeof(char) * 500);
     memset(buffer, '0', 500);
 
@@ -58,33 +105,28 @@ int main(int argc, char const *argv[]) {
     }
 
     int n = 0;
-    // while((n = recv(sockfd, buffer, 500, 0)) > 0) {
-    //     printf("Bytes of data received: %d\n", n);
-    //     buffer[n] = '\0';
-    //     printf("string terminated success.\n");
-    //     // if(fputs(buffer, stdout) == EOF)
-    //     // {
-    //     //     printf("\n Error : Fputs error\n");
-    //     // }
-    //     fputs(buffer, stdout);
-    // }
+
     while(1){
-        n = recv(sockfd, buffer, 500, 0);
-        if (n == -1){
-            printf("Receiving failed\n");
+        char *msg = read_segment(&sockfd);
+        if(msg == NULL){
+            printf("Receiving failed ....\n");
+            printf("Exiting now ....\n");
             exit(-1);
         }
-        else if(n == 0){
-            continue;
-        }
-        *(buffer+n) = '\0';
         int flag = 0;
-        if (strlen(buffer) == 1){
-
+        if (strlen(msg) == 1){
+            flag = atoi(msg);
         }
-        printf("%s", buffer);
-        fflush(stdout);
-        memset(buffer, '0', 500);
+        switch (flag){
+            case 1:
+                
+                break;
+            case 2:
+                break;
+            default:
+                printf("%s", msg);
+                fflush(stdout);
+                break;
+        }
     }
-    return 0;
 }

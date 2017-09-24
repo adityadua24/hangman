@@ -100,3 +100,48 @@ request* get_request(){
     rc = pthread_mutex_unlock(&request_mutex);
     return pop;
 }
+
+char * read_segment(int *connfd){
+    int n, i = 0;
+    char *ch;
+    ch = (char *)malloc(sizeof(char));
+    memset(ch, '0', 1);
+    char *buffer;
+    buffer = (char *)malloc(sizeof(char) * 256);
+    memset(buffer, '0', 256);
+    while(1){
+        n = recv(*connfd, ch, 1, 0);
+        if (n == 0){
+            return NULL;
+        }
+        else if(n == -1){
+            printf("Receiving failed ....\n");
+            exit(-1);
+        }
+        if(*ch != '#'){
+            *(buffer+i) = *ch;
+        }
+        else{
+            *(buffer+i) = '\0';
+            break;
+        }
+        i++;
+    }
+    return buffer;
+}
+
+int send_segment(int *connfd, char *msg, int msg_len){
+    char terminate = '#';
+    int n = 0;
+    for(int i=0; i < msg_len; i++){
+        if ((n = send(*connfd, (msg+i), 1, 0)) <= 0){
+            printf("Sending failed ....\n");
+            return -1;
+        }
+    }
+    if ((n = send(*connfd, &terminate, 1, 0)) <=0 ){
+        printf("Segment termination failed ....\n");
+        return -1;
+    }
+    return 1;
+}
