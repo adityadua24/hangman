@@ -175,6 +175,8 @@ int main(int argc, char const *argv[]) {
                         printf("Disconnecting ....\n");
                         exit(-1);
                     }
+                    char *status = read_segment(&sockfd);
+                    printf("%s", status);
                 }
                 break;
             default:

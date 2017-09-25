@@ -8,7 +8,7 @@ void* play_game(void *args) {
     request *game_session = (request *)args;
     int *connfd = &(game_session->connfd);
     printf("game session connfd: %d\n", *connfd);
-    char buffer[] = "\n================================================\n\nWelcome to the Online Hangman Gaming System\n\n================================================\n";
+    char buffer[] = "\n================================================\n\nWelcome to the Online Hangman Gaming System\n\n================================================\n\n";
     // send(*connfd, buffer, strlen(buffer), 0);
     // int x = authenticate(connfd);
     int n = 0; 
@@ -54,10 +54,11 @@ int authenticate(int *connfd){
     for(int i=0; i < user_count; i++){
         if (strcmp((*(user_names+i)), name) == 0){
             if(strcmp((*(passwords+i)), pswrd) == 0){
+                char *success = "\n=====================================\n    Authentication sucessfull   \n=====================================\n\n";
+                send_segment(connfd, success, strlen(success));
                 return 1;
             }
         } 
     }
-
     return 0;
 }
