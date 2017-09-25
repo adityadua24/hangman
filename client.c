@@ -179,6 +179,15 @@ int main(int argc, char const *argv[]) {
                     printf("%s", status);
                 }
                 break;
+            case 3: {
+                    char *option = (char *)malloc(sizeof(char) * 2);
+                    fgets(option, 2, stdin);
+                    if ((send_segment(&sockfd, option, strlen(option))) == -1){
+                        printf("Disconnecting ....\n");
+                        exit(-1);
+                    }
+                }
+                break;
             default:
                 printf("%s", msg);
                 fflush(stdout);

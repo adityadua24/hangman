@@ -21,7 +21,25 @@ void* play_game(void *args) {
         send_segment(connfd, fail, strlen(fail));
         close(*connfd);
     }else if(login == 1){
-        ;
+        int opt = options(connfd);
+        switch (opt) {
+            case 1:
+                printf("option 1 selected\n");
+                break;
+            case 2:
+                printf("option 2 selected\n");
+                break;
+            case 3:
+                printf("option 3 selected\n");
+                break;
+            default:
+                {
+                char *invalid = "Invalid selection ....\nDisconnecting ....\n";
+                send_segment(connfd, invalid, strlen(invalid));
+                close(*connfd);
+                }
+                break;
+        }
     }
     printf("Sleeping......\n");
     sleep(10);
@@ -61,4 +79,25 @@ int authenticate(int *connfd){
         } 
     }
     return 0;
+}
+
+int options(int *connfd){
+    char *select = "Please enter a selection\n<1> Play Hangman\n<2> Show Leaderboard\n<3> Quit\n\nSelect option--> ";
+    send_segment(connfd, select, strlen(select));
+    char *flag = "3";
+    send_segment(connfd, flag, strlen(flag));
+    char *selection = read_segment(connfd);
+    printf("Selection is : %s\n", selection);
+    if (*selection == '1'){
+        return 1;
+    }
+    else if(*selection == '2'){
+        return 2;
+    }
+    else if(*selection == '3'){
+        return 3;
+    }
+    else{
+        return 0;
+    }
 }

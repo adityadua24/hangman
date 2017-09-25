@@ -20,6 +20,7 @@ extern char **combinations;
 
 void* play_game(void *);
 int authenticate(int *);
+int options(int*);
 char* read_segment(int *);
 int send_segment(int *connfd, char *msg, int msg_len);
 #endif
