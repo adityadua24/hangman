@@ -15,6 +15,7 @@
 #include <errno.h>
 #include <arpa/inet.h>
 #include <assert.h>
+#include <termios.h>
 
 /*--- GLOBAL VARIABLES -------------*/
 int sockfd = 0;
@@ -27,6 +28,40 @@ void signal_handler(int sigNum){
     printf("\nSafely exiting code ....\n");
     close(sockfd); // Close the socket. 0 if successful, -1 if error
     exit(sigNum);
+}
+/*
+Source of this function code is the hyper link below.
+https://stackoverflow.com/questions/1786532/c-command-line-password-input
+
+Buffer size and string termination is modified to suits this program.
+*/
+
+void getPassword(char password[])
+{
+    static struct termios oldt, newt;
+    int i = 0;
+    int c;
+
+    /*saving the old settings of STDIN_FILENO and copy settings for resetting*/
+    tcgetattr( STDIN_FILENO, &oldt);
+    newt = oldt;
+
+    /*setting the approriate bit in the termios struct*/
+    newt.c_lflag &= ~(ECHO);          
+
+    /*setting the new bits*/
+    tcsetattr( STDIN_FILENO, TCSANOW, &newt);
+
+    /*reading the password from the console*/
+    while ((c = getchar())!= '\n' && c != EOF && i < 8){
+        password[i++] = c;
+    }
+    password[i] = '\n';
+    password[++i] = '\0';
+
+    /*resetting our old STDIN_FILENO*/ 
+    tcsetattr( STDIN_FILENO, TCSANOW, &oldt);
+
 }
 
 int send_segment(int *sockfd, char *msg, int msg_len){
@@ -118,10 +153,29 @@ int main(int argc, char const *argv[]) {
             flag = atoi(msg);
         }
         switch (flag){
-            case 1:
-                
-                break;
-            case 2:
+            case 1:{
+                    char *username = (char *)malloc(sizeof(char) * 10);
+                    memset(username, '0', 10);
+                    // char username[10];
+                    // gets(username);
+                    fgets(username, 10, stdin);
+                    if ((send_segment(&sockfd, username, strlen(username))) == -1){
+                        printf("Disconnecting ....\n");
+                        exit(-1);
+                    }
+                    }
+                    break;
+            case 2:{
+                    char *pswrd = (char *)malloc(sizeof(char) * 10);
+                    memset(pswrd, '0', 10);
+                    // fgets(pswrd, 10, stdin);
+                    getPassword(pswrd);
+                    printf("\n");
+                    if((send_segment(&sockfd, pswrd, strlen(pswrd))) == -1){
+                        printf("Disconnecting ....\n");
+                        exit(-1);
+                    }
+                }
                 break;
             default:
                 printf("%s", msg);

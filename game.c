@@ -15,32 +15,49 @@ void* play_game(void *args) {
     if ((n = send_segment(connfd, buffer, strlen(buffer))) == -1){
         return NULL;
     }
-    if (authenticate(connfd) == -1){
-        char *fail = "Authentication failed. Invalid username or password.\nDisconnecting ....\n";
+    int login = authenticate(connfd);
+    if (login == 0){
+        char *fail = "\nYou entered an incorrect username or password.\nDisconnecting ....\n";
         send_segment(connfd, fail, strlen(fail));
         close(*connfd);
+    }else if(login == 1){
+        ;
     }
     printf("Sleeping......\n");
     sleep(10);
 }
 
 int authenticate(int *connfd){
-    char output[] = "You are required to logon with your registered Username and Password\nPlease enter your username--> ";
+    char *output = "You are required to logon with your registered Username and Password\nPlease enter your username--> ";
     int sent = send_segment(connfd, output, strlen(output));
-    char *flag = "1";
-    // sleep(1);
+    char *flag;
+    flag = "1";
     sent = send_segment(connfd, flag, strlen(flag));
-    // user = (char *)malloc(sizeof(char) * 10);
-    // memset(user, '0', 10);
-    // int rec = recv(*connfd, user, 10, 0);
-    // *(user+rec) = '\0';
-    // printf("%s\n", user);
-    // char *flag = "1 ";
-    // send(*connfd, flag, strlen(flag), 0);
-    // int n;
-    // char input[256];
-    // if ((read(*connfd, input, sizeof(input)-1)) != -1){
-    //     printf("Error reading from client ....\n");
-    // }
+    char *name = read_segment(connfd);
+    if (name == NULL){
+        printf("Failed to receive username ....\n");
+        return 0;
+    }
+    *(name + (strlen(name)-1)) = '\0'; // Removes trailing new line character
+    output = "Please enter your password--> ";
+    sent = send_segment(connfd, output, strlen(output));
+    flag = "2";
+    sent = send_segment(connfd, flag, strlen(flag));
+    char *pswrd = read_segment(connfd);
+    if (pswrd  == NULL){
+        printf("Failed to receive password ....\n");
+        return 0;
+    }
+    *(pswrd + (strlen(pswrd)-1)) = '\0'; // Removes trailing new line character
+    // printf("password is: %s\n", pswrd);
+    // printf("password lenght is: %d\n", strlen(pswrd));
+    for(int i=0; i < user_count; i++){
+        if (strcmp((*(user_names+i)), name) == 0){
+            if(strcmp((*(passwords+i)), pswrd) == 0){
+                return 1;
+            }
+        } 
+    }
+
     return 0;
 }
