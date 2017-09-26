@@ -69,11 +69,14 @@ void read_hangman(char ***combinations){
         fgets(line, sizeof(line), fp);
         if (strlen(line) > 2){
             for(int j=0; j < strlen(line); j++){
-                if(line[j] != ','){
-                    *((*((*combinations)+i))+j) = line[j];
+                if(line[j] == ','){
+                    *((*((*combinations)+i))+j) = ' ';
+                }
+                else if(line[j] == '\n'){
+                    // Do Nothing
                 }
                 else {
-                    *((*((*combinations)+i))+j) = ' ';
+                    *((*((*combinations)+i))+j) = line[j];
                 }
             }
         }

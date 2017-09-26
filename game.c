@@ -12,7 +12,7 @@ void* play_game(void *args) {
     // send(*connfd, buffer, strlen(buffer), 0);
     // int x = authenticate(connfd);
     int n = 0; 
-    if ((n = send_segment(connfd, buffer, strlen(buffer))) == -1){
+    if ((n = send_segment(connfd, buffer, strlen(buffer))) == 0){
         return NULL;
     }
     int login = authenticate(connfd);
@@ -25,12 +25,15 @@ void* play_game(void *args) {
         switch (opt) {
             case 1:
                 printf("option 1 selected\n");
+                start_playing(connfd);
                 break;
             case 2:
                 printf("option 2 selected\n");
+                show_leaderboard(connfd);
                 break;
             case 3:
                 printf("option 3 selected\n");
+                quit(connfd);
                 break;
             default:
                 {
@@ -88,7 +91,10 @@ int options(int *connfd){
     send_segment(connfd, flag, strlen(flag));
     char *selection = read_segment(connfd);
     printf("Selection is : %s\n", selection);
-    if (*selection == '1'){
+    if (selection == NULL){
+        return 0;
+    }
+    else if (*selection == '1'){
         return 1;
     }
     else if(*selection == '2'){
@@ -101,3 +107,98 @@ int options(int *connfd){
         return 0;
     }
 }
+int start_playing(int *connfd){
+    int select = (int) random_at_most(comb_count-1);
+    char *pair;
+    pair = (char *)malloc(sizeof(char) * strlen(*(combinations+select)));
+    strcpy(pair, *(combinations+select));
+    int num_guess = min(strlen(pair)-1+10, 26); // strlen(pair)-1 to remove space between words 
+    printf("pair is: %s", pair);
+    // printf("All good till here - 1\n");
+    char *got_right = form_got_right(pair);
+    // printf("All good till here - 2\n");
+    printf("got right string is : %s", got_right);
+    
+    return 0;
+}
+
+int quit(int *connfd){
+    return 0;
+}
+
+int show_leaderboard(int *connfd){
+    return 0;
+}
+
+/*
+Code retreived from the following hyperlink. Return uniformly distributed random numbers between 0 and max.
+https://stackoverflow.com/questions/2509679/how-to-generate-a-random-number-from-within-a-range
+*/
+long random_at_most(long max) {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+
+    /* using nano-seconds instead of seconds */
+    srandom((time_t)ts.tv_nsec);
+    unsigned long
+      // max <= RAND_MAX < ULONG_MAX, so this is okay.
+      num_bins = (unsigned long) max + 1,
+      num_rand = (unsigned long) RAND_MAX + 1,
+      bin_size = num_rand / num_bins,
+      defect   = num_rand % num_bins;
+  
+    long x;
+    do {
+     x = random();
+    }
+    // This is carefully written not to overflow
+    while (num_rand - defect <= (unsigned long)x);
+  
+    // Truncated division is intentional
+    return x/bin_size;
+  }
+
+  void game_ui(int *connfd, char *guessed, int *num_guess, char *got_right){
+    char *ui;
+    char *head = "------------------------------------";
+    char *line1= "\nGuessed letters: ";
+    ui = strcat(head, line1);
+    ui = strcat(ui, guessed);
+    char *line2=  "\nNumber of guesses left: ";
+    char line2_data[2];
+    sprintf(line2_data, "%d", *num_guess);
+    ui = strcat(ui, line2_data);
+    char *line3 = "\nWord: ";
+    ui = strcat(ui, line3);
+    ui = strcat(ui, got_right);
+    char *newline = " ";
+    ui = strcat(ui, newline);
+    char *flag = "4";
+    send_segment(connfd, flag, strlen(flag));
+    send_segment(connfd, ui, strlen(ui));
+  }
+
+  int min(int x, int y){
+      if (x >= y){
+          return y;
+      }
+      else {
+          return x;
+      }
+  }
+
+  char* form_got_right(char *pair){
+    char *got_right = (char *)malloc(sizeof(char)*2*strlen(pair)+1); // +1 for string terminator
+    *(got_right + 2*strlen(pair)) = '\0';
+    char *encodeChar = "_ ";
+    char *encodeSpace = "  ";
+    for(int i =0; i < strlen(pair); i++){
+        if(*(pair+i) == ' '){
+            got_right = strcat(got_right, encodeSpace);
+        }
+        else {
+            got_right = strcat(got_right, encodeChar);
+        }
+    }
+    return got_right;
+  }

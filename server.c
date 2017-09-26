@@ -53,7 +53,7 @@ void sanity_check(int i) {
         case 2:
             printf("Total combinations: %d\n", comb_count);
             for(int j=0; j < comb_count; j++) {
-                printf("%s", *(combinations+j));
+                printf("%s\n", *(combinations+j));
             }
             break;
     }
@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
     read_hangman(&combinations);
     setup_threadpool(t_pool, thread_id, CONN_LIMIT);
     // sanity_check(1);
-    // sanity_check(2);
+    sanity_check(2);
     setup_server_conns(port);
     
     printf("Listening at port %d\n", port);

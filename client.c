@@ -188,6 +188,11 @@ int main(int argc, char const *argv[]) {
                     }
                 }
                 break;
+            case 4:
+                {
+                    
+                }
+                break;
             default:
                 printf("%s", msg);
                 fflush(stdout);

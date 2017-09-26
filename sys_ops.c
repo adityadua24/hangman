@@ -139,12 +139,12 @@ int send_segment(int *connfd, char *msg, int msg_len){
     for(int i=0; i < msg_len; i++){
         if ((n = send(*connfd, (msg+i), 1, 0)) <= 0){
             printf("Sending failed ....\n");
-            return -1;
+            return 0;
         }
     }
     if ((n = send(*connfd, &terminate, 1, 0)) <=0 ){
         printf("Segment termination failed ....\n");
-        return -1;
+        return 0;
     }
     return 1;
 }
