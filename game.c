@@ -46,8 +46,10 @@ void* play_game(void *args) {
                 char *invalid = "Invalid selection ....\nDisconnecting ....\n";
                 int sent = send_segment(connfd, invalid, strlen(invalid));
                 if (sent == 0){
-                    // printf("client disconnected\n");
+                    *exit_status = 0;
+                    return (void *)exit_status;
                 }
+                opt = options(connfd);
             }
         }
     }
@@ -100,6 +102,9 @@ int options(int *connfd){
     char *selection = read_segment(connfd);
     printf("Selection is : %s\n", selection);
     if (selection == NULL){
+        return 0;
+    }
+    else if(*selection == '\n'){
         return 0;
     }
     else if (*selection == '1'){

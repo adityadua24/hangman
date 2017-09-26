@@ -115,6 +115,7 @@ int main(int argc, char const *argv[]) {
         "server_ip and port number expected.\n");
         exit(-1);
     }
+    signal(SIGINT, signal_handler); // Registers signal handling function to kernel
     int port = atoi(argv[2]);
     struct sockaddr_in serv_addr;
     inet_aton(argv[1], &serv_addr.sin_addr);
