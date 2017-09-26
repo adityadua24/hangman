@@ -59,12 +59,16 @@ void* game_requests_loop(void *args){
     while(1) {
         if(num_requests > 0) {
             request *game_session = get_request();
-            play_game(game_session);
+            if(game_session != NULL){
+                rc = pthread_mutex_unlock(&request_mutex);
+                play_game(game_session);
+                free(game_session);
+                rc = pthread_mutex_lock(&request_mutex);
+            }  
         }
         else{
             rc = pthread_cond_wait(&got_request, &request_mutex);
         }
-        sleep(1);
     }
 }
 
@@ -72,14 +76,13 @@ void add_request(request *new){
     int rc = pthread_mutex_lock(&request_mutex);
     if(num_requests == 0) {
         requests = new;
-        printf("ALL GOOD CHECKPOINT: 1\n");
     }
     else if( num_requests > 0) {
         new->next = requests;
         requests = new;
-        printf("ALL GOOD CHECKPOINT: 2\n");
     }
     num_requests++;
+    printf("Request queued ....\n");
     rc = pthread_mutex_unlock(&request_mutex);
     rc = pthread_cond_signal(&got_request);
 }
