@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
     read_hangman(&combinations);
     setup_threadpool(t_pool, thread_id, CONN_LIMIT);
     // sanity_check(1);
-    sanity_check(2);
+    // sanity_check(2);
     setup_server_conns(port);
     
     printf("Listening at port %d\n", port);

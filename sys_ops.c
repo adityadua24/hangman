@@ -119,7 +119,7 @@ char * read_segment(int *connfd){
         }
         else if(n == -1){
             printf("Receiving failed ....\n");
-            exit(-1);
+            return NULL;
         }
         if(*ch != '#'){
             *(buffer+i) = *ch;

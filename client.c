@@ -180,9 +180,15 @@ int main(int argc, char const *argv[]) {
                 }
                 break;
             case 3: {
-                    char *option = (char *)malloc(sizeof(char) * 2);
-                    fgets(option, 2, stdin);
-                    if ((send_segment(&sockfd, option, strlen(option))) == -1){
+                    // printf(" --- Flag 3 captured --- \n");
+                    // char *option = (char *)malloc(sizeof(char) * 2);
+                    // char *ch;
+                    // while ((ch = getchar()) != '\n' && ch != EOF)  // Empties the input buffer
+                    // ;
+                    // // fgets(option, 2, stdin);
+                    char option = fgetc(stdin);
+                    // if ((send_segment(&sockfd, option, strlen(option))) == -1){
+                    if ((send_segment(&sockfd, &option, 1)) == -1){
                         printf("Disconnecting ....\n");
                         exit(-1);
                     }
@@ -190,7 +196,15 @@ int main(int argc, char const *argv[]) {
                 break;
             case 4:
                 {
-                    
+                    char *guess= (char *)malloc(sizeof(char) * 2);
+                    int ch;
+                    while ((ch = getchar()) != '\n' && ch != EOF)  // Empties the input buffer
+                        ;
+                    fgets(guess, 2, stdin);
+                    if ((send_segment(&sockfd, guess, strlen(guess))) == -1){
+                        printf("Disconnecting ....\n");
+                        exit(-1);
+                    }
                 }
                 break;
             default:
