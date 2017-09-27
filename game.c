@@ -25,37 +25,46 @@ void* play_game(void *args) {
             return (void *)exit_status;
         }
         close(*connfd);
-    }else if(login == 1){
+    } 
+    for(int i=0; i < 5; i++){
         int opt = options(connfd);
-        for(int i=0; i < 5; i++){
-            if(opt == 1){
-                printf("option 1 selected\n");
-                int status = start_playing(connfd, this_session);
-                opt = options(connfd);
-            }
-            else if(opt == 2){
-                printf("option 2 selected\n");
-                show_leaderboard(connfd);
-                opt = options(connfd);
-            }
-            else if(opt == 3){
-                printf("option 3 selected\n");
-                quit(connfd);
-            }
-            else{
-                char *invalid = "Invalid selection ....\nDisconnecting ....\n";
-                int sent = send_segment(connfd, invalid, strlen(invalid));
-                if (sent == 0){
-                    *exit_status = 0;
-                    return (void *)exit_status;
-                }
-                opt = options(connfd);
+        if (opt == -1){
+            *exit_status = 0;
+            return (void *)exit_status;
+        }
+        if(opt == 1){
+            printf("option 1 selected\n");
+            int status = start_playing(connfd, this_session);
+        }
+        else if(opt == 2){
+            printf("option 2 selected\n");
+            show_leaderboard(connfd);
+        }
+        else if(opt == 3){
+            printf("option 3 selected\n");
+            quit(connfd);
+            *exit_status = 1;
+            return (void *)exit_status;
+        }
+        else{
+            char *invalid = "Invalid selection ....\nTry Again ....\n";
+            int sent = send_segment(connfd, invalid, strlen(invalid));
+            if (sent == 0){
+                *exit_status = 0;
+                return (void *)exit_status;
             }
         }
-        printf("You ran out of tries ....\n Exiting now\n");
     }
-    printf("Sleeping......\n");
-    sleep(10);
+    char *msg = "You ran out of tries ....\nExiting now\n";
+    int sent = send_segment(connfd, msg, strlen(msg));
+    if(sent == 0){
+        *exit_status = 0;
+        return (void *)exit_status;
+    }
+    else{
+        *exit_status = 1;
+        return (void *)exit_status;
+    }
 }
 
 int authenticate(int *connfd, session_info *this_session){
@@ -103,9 +112,11 @@ int options(int *connfd){
     char *selection = read_segment(connfd);
     printf("Selection is : %s\n", selection);
     if (selection == NULL){
-        return 0;
+        printf("Returning null\n");
+        return -1;
     }
     else if(*selection == '\n'){
+        printf("Returning new line\n");
         return 0;
     }
     else if (*selection == '1'){

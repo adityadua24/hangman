@@ -61,7 +61,10 @@ void* game_requests_loop(void *args){
             request *game_session = get_request();
             if(game_session != NULL){
                 rc = pthread_mutex_unlock(&request_mutex);
-                play_game(game_session);
+                int *status = (int *)play_game(game_session);
+                if(*status == 0){
+                    printf("Something went wrong with a client session.\n");
+                }
                 free(game_session);
                 rc = pthread_mutex_lock(&request_mutex);
             }  
