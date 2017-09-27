@@ -27,7 +27,7 @@ void* play_game(void *args) {
         close(*connfd);
     }else if(login == 1){
         int opt = options(connfd);
-        while(1){
+        for(int i=0; i < 5; i++){
             if(opt == 1){
                 printf("option 1 selected\n");
                 int status = start_playing(connfd, this_session);
@@ -52,6 +52,7 @@ void* play_game(void *args) {
                 opt = options(connfd);
             }
         }
+        printf("You ran out of tries ....\n Exiting now\n");
     }
     printf("Sleeping......\n");
     sleep(10);

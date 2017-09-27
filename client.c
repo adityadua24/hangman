@@ -157,8 +157,6 @@ int main(int argc, char const *argv[]) {
             case 1:{
                     char *username = (char *)malloc(sizeof(char) * 10);
                     memset(username, '0', 10);
-                    // char username[10];
-                    // gets(username);
                     fgets(username, 10, stdin);
                     if ((send_segment(&sockfd, username, strlen(username))) == -1){
                         printf("Disconnecting ....\n");
@@ -169,7 +167,6 @@ int main(int argc, char const *argv[]) {
             case 2:{
                     char *pswrd = (char *)malloc(sizeof(char) * 10);
                     memset(pswrd, '0', 10);
-                    // fgets(pswrd, 10, stdin);
                     getPassword(pswrd);
                     printf("\n");
                     if((send_segment(&sockfd, pswrd, strlen(pswrd))) == -1){
@@ -187,7 +184,11 @@ int main(int argc, char const *argv[]) {
                     // while ((ch = getchar()) != '\n' && ch != EOF)  // Empties the input buffer
                     // ;
                     // // fgets(option, 2, stdin);
-                    char option = fgetc(stdin);
+                    char option;
+                    option = fgetc(stdin);
+                    if(option == '\n'){
+                        option = fgetc(stdin);
+                    }
                     // if ((send_segment(&sockfd, option, strlen(option))) == -1){
                     if ((send_segment(&sockfd, &option, 1)) == -1){
                         printf("Disconnecting ....\n");
@@ -197,12 +198,12 @@ int main(int argc, char const *argv[]) {
                 break;
             case 4:
                 {
-                    char *guess= (char *)malloc(sizeof(char) * 2);
-                    int ch;
-                    while ((ch = getchar()) != '\n' && ch != EOF)  // Empties the input buffer
-                        ;
-                    fgets(guess, 2, stdin);
-                    if ((send_segment(&sockfd, guess, strlen(guess))) == -1){
+                    char guess;
+                    guess = fgetc(stdin);
+                    if (guess == '\n'){
+                        guess = fgetc(stdin);
+                    }
+                    if ((send_segment(&sockfd, &guess, 1)) == -1){
                         printf("Disconnecting ....\n");
                         exit(-1);
                     }
