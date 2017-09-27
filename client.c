@@ -16,6 +16,7 @@
 #include <arpa/inet.h>
 #include <assert.h>
 #include <termios.h>
+#include <signal.h>
 
 /*--- GLOBAL VARIABLES -------------*/
 int sockfd = 0;
