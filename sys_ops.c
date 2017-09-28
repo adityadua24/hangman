@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 // #include <omp.h>
-#include <pthread.h>
 #include <unistd.h>
 #include "sys_ops.h"
 
@@ -24,6 +23,13 @@ void malloc_combinations(char ***combinations){
     *combinations = (char **)malloc(sizeof(char *) * comb_count);
     for(int i=0; i < comb_count; i++){
         *(*(combinations)+i) = (char *)malloc(sizeof(char) * phrase_len);
+    }
+}
+
+void malloc_leaderboard(lb **leaderboard){
+    *(leaderboard) = (lb *)malloc(sizeof(lb) * user_count);
+    for(int i=0; i < user_count; i++){
+        ((*leaderboard)+i)->user = (char *)(malloc(sizeof(char) * 10));
     }
 }
 
@@ -150,4 +156,12 @@ int send_segment(int *connfd, char *msg, int msg_len){
         return 0;
     }
     return 1;
+}
+
+void initialise_leaderboard(char ***usernames){
+    for(int i =0; i < user_count; i++){
+        strcpy(((leaderboard+i)->user), (*(*(usernames)+i)));
+        (leaderboard+i)->won = 0;
+        (leaderboard+i)->played  = 0;   
+    }
 }

@@ -25,7 +25,7 @@ void* play_game(void *args) {
             return (void *)exit_status;
         }
         close(*connfd);
-    } 
+    }
     for(int i=0; i < 5; i++){
         int opt = options(connfd);
         if (opt == -1){
@@ -35,6 +35,10 @@ void* play_game(void *args) {
         if(opt == 1){
             printf("option 1 selected\n");
             int status = start_playing(connfd, this_session);
+            if (status == 1){
+                // int added = add_to_leaderboard();
+                // int sorted = sort_leaderbaord();
+            }
         }
         else if(opt == 2){
             printf("option 2 selected\n");
@@ -133,7 +137,7 @@ int options(int *connfd){
     }
 }
 int start_playing(int *connfd, session_info *this_session){
-    int select = (int) random_at_most(comb_count-1);
+    int select = (int)random_at_most(comb_count-1);
     char *pair;
     pair = (char *)malloc(sizeof(char) * strlen(*(combinations+select)));
     strcpy(pair, *(combinations+select));
@@ -163,7 +167,12 @@ int start_playing(int *connfd, session_info *this_session){
     if ((game_over(connfd, num_guess, this_session)) == 0){
         return 0;
     }
-    return 1;
+    if((strchr(got_right, '_')) == NULL){  // Player won the game
+        return 1;
+    }
+    else{  // Player lost the game
+        return 2;
+    }
 }
 
 int quit(int *connfd){
@@ -302,4 +311,8 @@ void update_session_info(session_info *this_session, char *name, char *pswrd){
       this_session->password = (char *)malloc(strlen(pswrd));
       strcpy(this_session->user, name);
       strcpy(this_session->password, pswrd);
+}
+
+int update_leaderboard(session_info *this_session, int won){
+    return 1;
 }
