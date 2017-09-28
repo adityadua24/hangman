@@ -36,8 +36,14 @@ void* play_game(void *args) {
             printf("option 1 selected\n");
             int status = start_playing(connfd, this_session);
             if (status == 1){
-                // int added = add_to_leaderboard();
+                int updated = update_leaderboard(this_session, 1);
+                // int shown = show_leaderboard(connfd);
                 // int sorted = sort_leaderbaord();
+            }
+            else if(status == 2){
+                int updated = update_leaderboard(this_session, 0);
+                // int shown = show_leaderboard(connfd);
+                // int sorted = sort_leaderboard();
             }
         }
         else if(opt == 2){
@@ -109,7 +115,7 @@ int authenticate(int *connfd, session_info *this_session){
 }
 
 int options(int *connfd){
-    char *select = "Please enter a selection\n<1> Play Hangman\n<2> Show Leaderboard\n<3> Quit\n\nSelect option--> ";
+    char *select = "\nPlease enter a selection\n<1> Play Hangman\n<2> Show Leaderboard\n<3> Quit\n\nSelect option--> ";
     send_segment(connfd, select, strlen(select));
     char *flag = "3";
     send_segment(connfd, flag, strlen(flag));
@@ -180,7 +186,39 @@ int quit(int *connfd){
 }
 
 int show_leaderboard(int *connfd){
-    return 0;
+    char *leaderboard_msg = (char *)(malloc(sizeof(char) * 2000));
+    
+    for(int i =0; i<user_count; i++) {
+        // printf( "User name %d is: %s\n", i, (leaderboard+i)->user);
+        // printf("Won: %d, played: %d\n", (leaderboard+i)->won, (leaderboard+i)->played);
+        if( (leaderboard+i)->played > 0){
+            char *edge = "\n==================================\n";
+            leaderboard_msg = strcat(leaderboard_msg, edge);
+            char *line1 = "\nPlayer - ";
+            leaderboard_msg = strcat(leaderboard_msg, line1);
+            leaderboard_msg = strcat(leaderboard_msg, (leaderboard+i)->user);
+            char *line2 = "\nNumber of games won - ";
+            leaderboard_msg = strcat(leaderboard_msg, line2);
+            char *won = (char *)malloc(sizeof(char)*2);
+            sprintf(won, "%d", (leaderboard+i)->won);
+            leaderboard_msg = strcat(leaderboard_msg, won);
+            char *line3 = "\nNumber of games played - ";
+            leaderboard_msg = strcat(leaderboard_msg, line3);
+            char *played = (char *)malloc(sizeof(char)*2);
+            sprintf(played, "%d", (leaderboard+i)->played);
+            leaderboard_msg = strcat(leaderboard_msg, played);
+            leaderboard_msg = strcat(leaderboard_msg, edge);
+        }
+    }
+    int sent = 0;
+    if(strlen(leaderboard_msg) == 0){
+        char *noOnePlayed = "\n\n===================================================================================\nThere is no information currently stored in the Leader Board. Try again later.\n===================================================================================\n\n";
+        sent = send_segment(connfd, noOnePlayed, strlen(noOnePlayed));
+    }
+    else{
+        sent = send_segment(connfd, leaderboard_msg, strlen(leaderboard_msg));
+    }
+    return sent;
 }
 
 /*
@@ -314,5 +352,53 @@ void update_session_info(session_info *this_session, char *name, char *pswrd){
 }
 
 int update_leaderboard(session_info *this_session, int won){
+    int rc =0;
+    for(int i=0; i < user_count; i++){
+        if ((strcmp((leaderboard+i)->user, this_session->user)) == 0) {
+            rc = pthread_mutex_lock(&request_mutex);
+            printf("Locking and updating leaderboard\n");
+            (leaderboard+i)->played++;
+            if(won == 1){
+                (leaderboard+i)->won++;
+            }
+            rc = pthread_mutex_unlock(&request_mutex);
+            printf("Lock released\n");
+        }
+    }
+    return 1;
+}
+
+int sort_leaderboard(){
+    // Bubble Sort because array size is small
+    int rc = pthread_mutex_lock(&request_mutex);
+    for (int i = 0 ; i < (user_count-1); i++){
+        for (int j = 0; j < (user_count-i-1); j++){
+            if ( ((leaderboard+j)->won) > ((leaderboard+j+1)->won) ){
+                lb *swap;
+                *swap = *(leaderboard+j);
+                *(leaderboard+j) = *(leaderboard+j+1);
+                *(leaderboard+j+1) = *swap;
+            }
+            else if( ((leaderboard+j)->won) == ((leaderboard+j+1)->won) ){
+                if ( (((leaderboard+j)->won / (leaderboard+j)->played)) > (((leaderboard+j+1)->won / (leaderboard+j+1)->played)) ){
+                    lb *swap;
+                    *swap = *(leaderboard+j);
+                    *(leaderboard+j) = *(leaderboard+j+1);
+                    *(leaderboard+j+1) = *swap;
+                }
+                else if( (((leaderboard+j)->won / (leaderboard+j)->played)) == (((leaderboard+j+1)->won / (leaderboard+j+1)->played)) ){
+                    if( *((leaderboard+j)->user) > *((leaderboard+j+1)->user) ){
+                        printf("char of j is: %c\n", *((leaderboard+j)->user));
+                        printf("char of j+1 is: %c\n", *((leaderboard+j+1)->user));
+                        lb *swap;
+                        *swap = *(leaderboard+j);
+                        *(leaderboard+j) = *(leaderboard+j+1);
+                        *(leaderboard+j+1) = *swap;
+                    }
+                }
+            }
+        }
+    }
+    rc = pthread_mutex_unlock(&request_mutex);
     return 1;
 }

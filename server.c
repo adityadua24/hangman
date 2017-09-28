@@ -98,10 +98,6 @@ int main(int argc, char *argv[]) {
     // sanity_check(1);
     // sanity_check(2);
     initialise_leaderboard(&user_names);
-    for(int i =0; i<user_count; i++) {
-        printf( "User name %d is: %s\n", i, (leaderboard+i)->user);
-        printf("Won: %d, played: %d\n", (leaderboard+i)->won, (leaderboard+i)->played);
-    }
     setup_server_conns(port);
     
     printf("Listening at port %d\n", port);
