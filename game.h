@@ -20,8 +20,8 @@ typedef struct game_session{
 
 typedef struct leaderboard_entry{
     char *user;
-    int won;
-    int played;
+    float won;
+    float played;
 }lb;
 
 extern int sockfd;
@@ -50,4 +50,5 @@ int game_over(int *, int, session_info *);
 void update_session_info(session_info *, char *, char *);
 int update_leaderboard(session_info *, int);
 int sort_leaderboard();
+int swap_lb(int, int);
 #endif

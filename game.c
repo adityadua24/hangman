@@ -37,17 +37,20 @@ void* play_game(void *args) {
             int status = start_playing(connfd, this_session);
             if (status == 1){
                 int updated = update_leaderboard(this_session, 1);
-                // int shown = show_leaderboard(connfd);
-                // int sorted = sort_leaderbaord();
+                printf("Updated leaderboard\n");
+                
             }
             else if(status == 2){
                 int updated = update_leaderboard(this_session, 0);
-                // int shown = show_leaderboard(connfd);
+                printf("Updated leaderboard\n");
                 // int sorted = sort_leaderboard();
+                // printf("Sorted leaderboard\n");
             }
         }
         else if(opt == 2){
             printf("option 2 selected\n");
+            int sorted = sort_leaderboard();
+            printf("Sorted leaderboard\n");
             show_leaderboard(connfd);
         }
         else if(opt == 3){
@@ -146,7 +149,8 @@ int start_playing(int *connfd, session_info *this_session){
     int select = (int)random_at_most(comb_count-1);
     char *pair;
     pair = (char *)malloc(sizeof(char) * strlen(*(combinations+select)));
-    strcpy(pair, *(combinations+select));
+    // strcpy(pair, *(combinations+select));
+    pair = "boating activity";
     int num_guess = min(strlen(pair)-1+10, 26); // strlen(pair)-1 to remove space between words 
     char *got_right = form_got_right(pair);
     char *guessed = (char *)malloc(sizeof(char) * num_guess);
@@ -191,7 +195,7 @@ int show_leaderboard(int *connfd){
     for(int i =0; i<user_count; i++) {
         // printf( "User name %d is: %s\n", i, (leaderboard+i)->user);
         // printf("Won: %d, played: %d\n", (leaderboard+i)->won, (leaderboard+i)->played);
-        if( (leaderboard+i)->played > 0){
+        if( (leaderboard+i)->played >= 0){
             char *edge = "\n==================================\n";
             leaderboard_msg = strcat(leaderboard_msg, edge);
             char *line1 = "\nPlayer - ";
@@ -200,12 +204,12 @@ int show_leaderboard(int *connfd){
             char *line2 = "\nNumber of games won - ";
             leaderboard_msg = strcat(leaderboard_msg, line2);
             char *won = (char *)malloc(sizeof(char)*2);
-            sprintf(won, "%d", (leaderboard+i)->won);
+            sprintf(won, "%d", (int)((leaderboard+i)->won));
             leaderboard_msg = strcat(leaderboard_msg, won);
             char *line3 = "\nNumber of games played - ";
             leaderboard_msg = strcat(leaderboard_msg, line3);
             char *played = (char *)malloc(sizeof(char)*2);
-            sprintf(played, "%d", (leaderboard+i)->played);
+            sprintf(played, "%d", (int) ((leaderboard+i)->played));
             leaderboard_msg = strcat(leaderboard_msg, played);
             leaderboard_msg = strcat(leaderboard_msg, edge);
         }
@@ -356,13 +360,11 @@ int update_leaderboard(session_info *this_session, int won){
     for(int i=0; i < user_count; i++){
         if ((strcmp((leaderboard+i)->user, this_session->user)) == 0) {
             rc = pthread_mutex_lock(&request_mutex);
-            printf("Locking and updating leaderboard\n");
             (leaderboard+i)->played++;
             if(won == 1){
                 (leaderboard+i)->won++;
             }
             rc = pthread_mutex_unlock(&request_mutex);
-            printf("Lock released\n");
         }
     }
     return 1;
@@ -374,26 +376,15 @@ int sort_leaderboard(){
     for (int i = 0 ; i < (user_count-1); i++){
         for (int j = 0; j < (user_count-i-1); j++){
             if ( ((leaderboard+j)->won) > ((leaderboard+j+1)->won) ){
-                lb *swap;
-                *swap = *(leaderboard+j);
-                *(leaderboard+j) = *(leaderboard+j+1);
-                *(leaderboard+j+1) = *swap;
+                swap_lb(j, j+1);
             }
-            else if( ((leaderboard+j)->won) == ((leaderboard+j+1)->won) ){
-                if ( (((leaderboard+j)->won / (leaderboard+j)->played)) > (((leaderboard+j+1)->won / (leaderboard+j+1)->played)) ){
-                    lb *swap;
-                    *swap = *(leaderboard+j);
-                    *(leaderboard+j) = *(leaderboard+j+1);
-                    *(leaderboard+j+1) = *swap;
+            else if( (int)((leaderboard+j)->won) == (int)((leaderboard+j+1)->won) ){
+                if ( (int)((leaderboard+j)->played) < (int)((leaderboard+j+1)->played) ){
+                    swap_lb(j, j+1);
                 }
-                else if( (((leaderboard+j)->won / (leaderboard+j)->played)) == (((leaderboard+j+1)->won / (leaderboard+j+1)->played)) ){
-                    if( *((leaderboard+j)->user) > *((leaderboard+j+1)->user) ){
-                        printf("char of j is: %c\n", *((leaderboard+j)->user));
-                        printf("char of j+1 is: %c\n", *((leaderboard+j+1)->user));
-                        lb *swap;
-                        *swap = *(leaderboard+j);
-                        *(leaderboard+j) = *(leaderboard+j+1);
-                        *(leaderboard+j+1) = *swap;
+                else if( (int)((leaderboard+j)->played) == (int)((leaderboard+j+1)->played) ){
+                    if((*((leaderboard+j)->user)) > (*((leaderboard+j+1)->user)) ){
+                        swap_lb(j, j+1); 
                     }
                 }
             }
@@ -401,4 +392,23 @@ int sort_leaderboard(){
     }
     rc = pthread_mutex_unlock(&request_mutex);
     return 1;
+}
+
+int swap_lb(int x, int y){
+    // swap = x operations
+    lb *swap = (lb *)malloc(sizeof(lb));
+    swap->user = (char *)malloc(sizeof(char)*10);
+    strcpy(swap->user, (leaderboard+x)->user);
+    swap->won = (leaderboard+x)->won;
+    swap->played = (leaderboard+x)->played;
+
+    // x = y oparations
+    strcpy((leaderboard+x)->user, (leaderboard+y)->user);
+    (leaderboard+x)->won = (leaderboard+y)->won;
+    (leaderboard+x)->played = (leaderboard+y)->played;
+
+    // y = swap operation
+    strcpy((leaderboard+y)->user, swap->user);
+    (leaderboard+y)->won = swap->won;
+    (leaderboard+y)->played = swap->played;
 }
