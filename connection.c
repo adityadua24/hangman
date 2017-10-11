@@ -1,12 +1,3 @@
-#include <stdio.h>      /* Input/Output */
-#include <stdlib.h>     /* General Utilities */
-#include <string.h>     /* String handling */
-#include <unistd.h>     /* Symbolic Constants */
-#include <sys/types.h>  /* Primitive System Data Types */
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <signal.h>
-#include <arpa/inet.h>
 #include "connection.h"
 
 void setup_server_conns(int port){

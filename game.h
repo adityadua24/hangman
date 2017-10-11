@@ -5,6 +5,10 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <time.h>
+#include <stdlib.h>     /* General Utilities */
+#include <string.h>     /* String handling */
+#include <stdio.h>      /* Input/Output */
+#include <unistd.h>     /* Symbolic Constants */
 
 typedef struct game_request {
     int connfd;

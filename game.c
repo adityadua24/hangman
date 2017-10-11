@@ -1,7 +1,3 @@
-#include <stdlib.h>     /* General Utilities */
-#include <string.h>     /* String handling */
-#include <stdio.h>      /* Input/Output */
-#include <unistd.h>     /* Symbolic Constants */
 #include "game.h"
 
 void* play_game(void *args) {
@@ -19,12 +15,9 @@ void* play_game(void *args) {
     }
     int login = authenticate(connfd, this_session);
     if (login == 0){
-        char *fail = "\nYou entered an incorrect username or password.\nDisconnecting ....\n";
-        if ((send_segment(connfd, fail, strlen(fail))) == 0){
-            *exit_status = 0;
-            return (void *)exit_status;
-        }
-        close(*connfd);
+        printf("Login failed\n");
+        *exit_status = 0;
+        return (void *)exit_status;
     }
     for(int i=0; i < 5; i++){
         int opt = options(connfd);
@@ -82,10 +75,14 @@ void* play_game(void *args) {
 
 int authenticate(int *connfd, session_info *this_session){
     char *output = "You are required to logon with your registered Username and Password\nPlease enter your username--> ";
-    int sent = send_segment(connfd, output, strlen(output));
-    char *flag;
-    flag = "1";
-    sent = send_segment(connfd, flag, strlen(flag));
+    int sent; 
+    if((sent = send_segment(connfd, output, strlen(output))) == 0){
+        return 0;
+    }
+    char *flag = "1";
+    if((sent = send_segment(connfd, flag, strlen(flag))) == 0){
+        return 0;
+    }
     char *name = read_segment(connfd);
     if (name == NULL){
         printf("Failed to receive username ....\n");
@@ -93,9 +90,13 @@ int authenticate(int *connfd, session_info *this_session){
     }
     *(name + (strlen(name)-1)) = '\0'; // Removes trailing new line character
     output = "Please enter your password--> ";
-    sent = send_segment(connfd, output, strlen(output));
+    if((sent = send_segment(connfd, output, strlen(output))) == 0){
+        return 0;
+    }
     flag = "2";
-    sent = send_segment(connfd, flag, strlen(flag));
+    if((sent = send_segment(connfd, flag, strlen(flag))) == 0){
+        return 0;
+    }
     char *pswrd = read_segment(connfd);
     if (pswrd  == NULL){
         printf("Failed to receive password ....\n");
@@ -109,7 +110,9 @@ int authenticate(int *connfd, session_info *this_session){
         if (strcmp((*(user_names+i)), name) == 0){
             if(strcmp((*(passwords+i)), pswrd) == 0){
                 char *success = "\n=====================================\n    Authentication sucessfull   \n=====================================\n\n";
-                send_segment(connfd, success, strlen(success));
+                if((sent = send_segment(connfd, success, strlen(success))) == 0){
+                    return 0;
+                }
                 return 1;
             }
         } 
