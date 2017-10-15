@@ -6,12 +6,6 @@
 
 #include "server.h"
 
-
-/*----------- DEFINE ---------------*/
-#define CONN_LIMIT 10
-/*----------------------------------*/
-
-
 /*--- GLOBAL VARIABLES -------------*/
 int sockfd = 0;
 int user_count;
@@ -23,6 +17,9 @@ lb *leaderboard;
 request *requests;
 int num_requests = 0;
 int num_lb_entries = 0;
+pthread_t t_pool[CONN_LIMIT];
+int thread_id[CONN_LIMIT];
+int connfd[CONN_LIMIT] = {0};
 pthread_mutex_t request_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
 pthread_cond_t  got_request   = PTHREAD_COND_INITIALIZER;
 /*----------------------------------*/
@@ -34,11 +31,14 @@ void signal_handler(int sigNum){
     printf("\n---------------------------\n");
     printf("Safely exiting code ....\n");
     printf("Closing socket ....\n");
+    clear_pending_requests();
+    close_connections();
     close(sockfd); // Close the socket. 0 if successful, -1 if error
     printf("Freeing memory ....\n");
     free_memory_users_passwords(&user_names, &passwords);
     free_memory_combinations(&combinations);
     printf("Destroying thread pool ....\n");
+    destroy_threadpool(t_pool, thread_id, CONN_LIMIT);
     printf("---------------------------\n");
     exit(sigNum);
 }
@@ -69,15 +69,10 @@ int main(int argc, char *argv[]) {
     /*------ VARIABLES in main function stack -----*/
     /*---------------------------------------------*/
     int port = 0;
-    int connfd[CONN_LIMIT];
     // LeaderBoard lb;
-    
-    int thread_id[CONN_LIMIT];
-    pthread_t t_pool[CONN_LIMIT];
     struct sockaddr_in cli_addr;
     socklen_t cli_len;
     cli_len = sizeof(cli_addr);
-
     /*---------------------------------------------*/
 
     if (argc < 2) {
@@ -101,17 +96,18 @@ int main(int argc, char *argv[]) {
     setup_server_conns(port);
     
     printf("Listening at port %d\n", port);
+    int counter = 0;
     while(1) {
         request* new = (request *)malloc(sizeof(request));
         new->next = NULL;
         new->connfd = accept(sockfd, (struct sockaddr *) &(new->cli_addr), &(new->cli_len));
+        connfd[counter] = new->connfd;
+        counter++;
         if (new->connfd == -1){
             printf("Failed to accept connection.\n");
-            printf("Client address: %s\n", inet_ntoa(new->cli_addr.sin_addr));
         }
         else{
             printf("Connection accepted.\n");
-            printf("Client address: %\n", inet_ntoa(new->cli_addr.sin_addr));
         }
         add_request(new);
         sleep(1);

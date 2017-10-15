@@ -7,11 +7,14 @@
 #include <unistd.h>
 #include "game.h"
 
+#define CONN_LIMIT 10
+
 extern int user_count;
 extern int comb_count;
 extern int num_requests;
 extern request *requests;
 extern pthread_cond_t got_request;
+extern int connfd[CONN_LIMIT];
 
 void malloc_users_passwords(char ***, char ***);
 void malloc_combinations(char ***);

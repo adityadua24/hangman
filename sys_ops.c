@@ -1,8 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-// #include <omp.h>
-#include <unistd.h>
 #include "sys_ops.h"
 
 
@@ -59,19 +54,26 @@ void setup_threadpool(pthread_t *t_pool, int *thread_id, int numThreads){
     }
 }
 
+void destroy_threadpool(pthread_t *t_pool, int *thread_id, int numThreads){
+    // for(int i=0; i < numThreads; i++){
+    //     *(thread_id+i) = i;
+    //     pthread_kill(t_pool[i], SIGSTOP);
+    // }
+}
+
 void* game_requests_loop(void *args){
     int thread_id = *(int *)args;
     int rc = pthread_mutex_lock(&request_mutex);
     while(1) {
         if(num_requests > 0) {
-            request *game_session = get_request();
-            if(game_session != NULL){
+            request *req = get_request();
+            if(req != NULL){
                 rc = pthread_mutex_unlock(&request_mutex);
-                int *status = (int *)play_game(game_session);
+                int *status = (int *)play_game(req);
                 if(*status == 0){
                     printf("Something went wrong with a client session.\n");
                 }
-                free(game_session);
+                free(req);
                 rc = pthread_mutex_lock(&request_mutex);
             }  
         }
@@ -163,5 +165,23 @@ void initialise_leaderboard(char ***usernames){
         strcpy(((leaderboard+i)->user), (*(*(usernames)+i)));
         (leaderboard+i)->won = 0;
         (leaderboard+i)->played  = 0;   
+    }
+}
+
+void close_connections() {
+    for(int i=0; i<CONN_LIMIT; i++){
+        // close(connfd[i]);
+        // shutdown(connfd[i], SHUT_RDWR);
+        int sent = 0;
+        char *flag = "5";
+        if (*(connfd+i) != 0){
+            send_segment((connfd+i), flag, strlen(flag));
+        }
+    }
+}
+void clear_pending_requests(){
+    while(num_requests > 0){
+        request *req = get_request();
+        free(req);
     }
 }

@@ -198,7 +198,7 @@ int show_leaderboard(int *connfd){
     for(int i =0; i<user_count; i++) {
         // printf( "User name %d is: %s\n", i, (leaderboard+i)->user);
         // printf("Won: %d, played: %d\n", (leaderboard+i)->won, (leaderboard+i)->played);
-        if( (leaderboard+i)->played >= 0){
+        if( (leaderboard+i)->played > 0){
             char *edge = "\n==================================\n";
             leaderboard_msg = strcat(leaderboard_msg, edge);
             char *line1 = "\nPlayer - ";
@@ -388,6 +388,11 @@ int sort_leaderboard(){
                 else if( (int)((leaderboard+j)->played) == (int)((leaderboard+j+1)->played) ){
                     if((*((leaderboard+j)->user)) > (*((leaderboard+j+1)->user)) ){
                         swap_lb(j, j+1); 
+                    }
+                    else if((*((leaderboard+j)->user)) == (*((leaderboard+j+1)->user)) ){
+                        if((*(((leaderboard+j)->user)+1)) > (*(((leaderboard+j+1)->user)+1)) ){
+                            swap_lb(j, j+1); 
+                        }
                     }
                 }
             }
