@@ -14,8 +14,16 @@ void* play_game(void *args) {
         return NULL;
     }
     int login = authenticate(connfd, this_session);
-    if (login == 0){
+    if (login == -1){
         printf("Login failed\n");
+        *exit_status = 0;
+        return (void *)exit_status;
+    }
+    else if(login == 0){
+        char *invalid = "You either entered invalid username or password! \n";
+        send_segment(connfd, invalid, strlen(invalid));
+        char *flag = "6";
+        send_segment(connfd, flag, strlen(flag));
         *exit_status = 0;
         return (void *)exit_status;
     }
@@ -77,30 +85,30 @@ int authenticate(int *connfd, session_info *this_session){
     char *output = "You are required to logon with your registered Username and Password\nPlease enter your username--> ";
     int sent; 
     if((sent = send_segment(connfd, output, strlen(output))) == 0){
-        return 0;
+        return -1;
     }
     char *flag = "1";
     if((sent = send_segment(connfd, flag, strlen(flag))) == 0){
-        return 0;
+        return -1;
     }
     char *name = read_segment(connfd);
     if (name == NULL){
         printf("Failed to receive username ....\n");
-        return 0;
+        return -1;
     }
     *(name + (strlen(name)-1)) = '\0'; // Removes trailing new line character
     output = "Please enter your password--> ";
     if((sent = send_segment(connfd, output, strlen(output))) == 0){
-        return 0;
+        return -1;
     }
     flag = "2";
     if((sent = send_segment(connfd, flag, strlen(flag))) == 0){
-        return 0;
+        return -1;
     }
     char *pswrd = read_segment(connfd);
     if (pswrd  == NULL){
         printf("Failed to receive password ....\n");
-        return 0;
+        return -1;
     }
     *(pswrd + (strlen(pswrd)-1)) = '\0'; // Removes trailing new line character
     update_session_info(this_session, name, pswrd);
@@ -111,11 +119,11 @@ int authenticate(int *connfd, session_info *this_session){
             if(strcmp((*(passwords+i)), pswrd) == 0){
                 char *success = "\n=====================================\n    Authentication sucessfull   \n=====================================\n\n";
                 if((sent = send_segment(connfd, success, strlen(success))) == 0){
-                    return 0;
+                    return -1;
                 }
                 return 1;
             }
-        } 
+        }
     }
     return 0;
 }
@@ -189,7 +197,11 @@ int start_playing(int *connfd, session_info *this_session){
 }
 
 int quit(int *connfd){
-    return 0;
+    int sent;
+    char *output = "Quitting now....\n";
+    send_segment(connfd, output, strlen(output));
+    char *flag = "6";
+    send_segment(connfd, flag, strlen(flag));
 }
 
 int show_leaderboard(int *connfd){

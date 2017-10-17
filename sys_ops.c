@@ -73,6 +73,9 @@ void* game_requests_loop(void *args){
                 if(*status == 0){
                     printf("Something went wrong with a client session.\n");
                 }
+                else if(*status == 1){
+                    printf("Client quit the session.\n");
+                }
                 free(req);
                 rc = pthread_mutex_lock(&request_mutex);
             }  

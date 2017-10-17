@@ -218,6 +218,11 @@ int main(int argc, char const *argv[]) {
                     exit(-1);
                 }
                 break;
+            case 6:
+                {
+                    exit(-1);
+                }
+            break;
             default:
                 printf("%s", msg);
                 fflush(stdout);
